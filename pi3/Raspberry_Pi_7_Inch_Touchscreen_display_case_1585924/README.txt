@@ -1,0 +1,1 @@
+Raspberry Pi 7 Inch Touchscreen display case by luc_e on Thingiverse: https://www.thingiverse.com/thing:1585924
