@@ -51,6 +51,20 @@ It can register, but not recognise my Nikon remote.
 It can recognise and understand my Edifer remote.
 It can recognise and understand my son's cheap LED light remote.
 
+Now I need to write my own PIO programs based on this to detect signals from the H2?
+
+
+### Tiny 20240 ###
+Getting started...
+https://www.instructables.com/Introducing-the-Tiny-2040-Microcontroller-IR-Commu/
+This even shows a receive IR example!
+
+Plugged in to USB C. Powered, but did not detect. Changed cable. Appeared are rp2.
+
+There is different firmware for the 2mb and 8mb versions! I have the 8mb version.
+
+Copied on adafruit-circuitpython-pimoroni_tiny2040-en_GB-7.3.3.uf2 (not latest, but I used 7.3.3 on picos)
+
 
 
 ## 14th July 2023 ##
