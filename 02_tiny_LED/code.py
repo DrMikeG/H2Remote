@@ -37,16 +37,11 @@ LED(255,0,0)
 time.sleep(0.3)
 
 # Blink
-for i in range(4):
+while True:
     LED(0,0,255)
     time.sleep(0.3)
-    LED(0,0,0)
+    LED(0,255,0)
     time.sleep(0.3)
-# Fade UP
-for i in range(255):
-    LED(i,i,0)
-    time.sleep(0.01)
-# Fade DOWN
-for ii in range(255,-1,-1):
-    LED(ii,ii,0)
-    time.sleep(0.01)
+    LED(255,0,0)
+    time.sleep(0.3)
+    
