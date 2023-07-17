@@ -1,7 +1,8 @@
 import PulseDecoder
 import time
+import board
 
-decoder = PulseDecoder.PulseDecoder()
+decoder = PulseDecoder.PulseDecoder(_IR_Pin=board.GP7)
 
 while True:
     

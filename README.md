@@ -1,5 +1,67 @@
 # H2Remote
 
+# 17th July 2023 ##
+
+Tiny 2040 from Pimoroni is compatible with firmware designed for the Raspberry Pi Pico.
+
+It is one-third of the size of a Raspberry Pi Pico & has 16 GPIO pins while Raspberry Pi Pico has 40 pins.
+
+With proper orientations & mapping of the pins, there is no loss of functionality despite lesser pins.
+
+Board has some unique features that Raspberry Pi Pico does not have, such as a dedicated reset button, a fourth ADC pin, RGB LED & USB C port.
+
+![Alt text](./readme_img/tiny2040_back.png)
+
+Pin numbers 
+Pin numbers are available on top of the board. 
+These are numbered as logically &, these relate to GPIO pin number as per the Pico pinout reference.
+
+Tiny 2040 Pinout
+Pinout of the Tiny 2040 shows that it has a total of 16 pins(3 additional pins are for debugging) out of which 12 are I/O pins: 8 digital, 4 analog(12 bit).
+
+![Alt text](./readme_img/tiny2040_pins.png)
+
+The remaining pins are 2X Ground, 1X 5V, and 1X 3.3V. Bord supports 2X UART(UART0 and UART1), 1X SPI, and 2X I2C(I2C0 and I2C1) interfaces.
+
+
+I have been using GP22 (pin 12) on the pico.
+
+I can try and use D0
+Or I could try to use D26 (A0) in the tiny, which would be 
+
+I programmed up the Tiny 2048 with the code in 01_pico_IR.
+It didn't work because the Tiny doesn't have board.GP22 defined.
+
+I made a copy of the code in 03_tiny2034, including the libraries, and changed the default pin to 7.
+
+It was a bit iffy holding the wires on, but I got the tiny to recognize codes.
+
+Perfect!
+
+
+
+
+
+
+IR - Infrared Receiver (TSOP38238)
+To use, connect pin 3 (all the way to the right) to 5V power, pin 2 (middle) to ground and listen on pin 1. It doesn't do any decoding of the signal, just passes the 'raw data' along.
+
+![Alt text](./readme_img/tsop.png)
+
+I was puzzling this evening about the layout of my board. Because the gnd pin is in the middle, there was no neat way to pop the part into three adjacent pins on the tiny.
+
+I couldn't figure out why the internet didn't have 100s of tips about how to swap the order of legs, how to bend them around, or shim boards that let you change the order.
+I even considered making one.
+
+![Alt text](./readme_img/TSOP4838-specs.png)
+
+Then I learned this - and it's a bit of a revelation.
+The TSOP4838 is the same part as the TSOP2238 - except they have different pinning!
+
+I can get OUT,VS,GND - which backwards is GND/VS/OUT - which is the order of the pins I want to use.
+
+
+
 ## 16th July 2023 ## 
 
 Started work on a shock-mount for the H2.

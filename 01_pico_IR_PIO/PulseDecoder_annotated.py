@@ -64,17 +64,23 @@ class PulseDecoder:
             code = ""
 
             # Check for repeat signal
+            # What is the significance of 9000 and 2250?
             if len(pulse) == 2:
                 if self.resEqual(pulse[0], 9000) and self.resEqual(pulse[1], 2250):
                     code = "REPEAT"
                     return code
 
             # Check for correct start pulses
+            # What is the significance of 9000 and 4500?
             if not self.resEqual(pulse[0], 9000) and not self.resEqual(pulse[1], 4500):
                 print("Invalid code - Starting pulse error")
                 return False
 
             # Decode the remaining pulses
+            # Decode in pairs
+            # if combined value is longer than x3 it should be a one
+            # one should be n,3n
+            # zero should be n,n
             for i in range(2, len(pulse)-1, 2):
                 if (pulse[i] + pulse[i+1]) > self.__DATA_PULSE_WIDTH * 3:
                     if self.checkOne(pulse[i], pulse[i+1]):
