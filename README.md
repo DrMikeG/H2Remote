@@ -1,4 +1,11 @@
 # H2Remote
+Serial 2400 8b no parity 1 stop (8n1)
+Bit order: LSB first, inverted logic: no
+https://github.com/raspberrypi/pico-examples/blob/master/pio/uart_rx/uart_rx.pio
+
+// bytes to start and stop the recorder, a negative number is used as a delay
+int record[5] = { 0x81, 0x0, -100, 0x80, 0x0 };  
+
 
 # 17th July 2023 ##
 
