@@ -1,0 +1,254 @@
+//written for a Teensy 3.x
+
+#define MONITOR_LED 13
+#define RED_BTN 2
+#define GRN_BTN 3
+#define BLU_BTN 4
+
+unsigned long nowMillis = 0;
+unsigned long prevMillis = 0;
+unsigned long buttonPressDelay = 400;
+unsigned long serialTimeout = 8000; // it can take a few seconds for the zoom to start recording
+
+struct ZOOMTX {
+  int record[4][5] = { {0x81, 0x0, -100, 0x80, 0x0},   // Transmit command data - a minus number is used as a delay(xxx)
+                       {0x20, 0x20, 0x21},             // Expected Response - Start (in XY Stereo mode)
+                       {0x21, 0x21, 0x20},             // Response - Stop
+                       {0} };                          // status: record[3][0] = 1: recording, 0: not recording
+  int pause[4][5]  = { {0x80, 0x2, -100, 0x80, 0x0},
+                       {0x21, 0x21, 0x20},
+                       {0x20, 0x21},
+                       {0} };
+  int mark[4][5]   = { {0x80, 0x1, -100, 0x80, 0x0},
+                       {0x20, 0x20},
+                       {0x20, 0x20},
+                       {0} };
+
+  int noAction[2]  = { 0x20, 0x20 }; // this happens when pause is pressed while not recording. Response in XY Stereo mode
+};
+
+struct LED_MONITOR {
+  const unsigned int onTime = 300;
+  const unsigned int offTime = 500;
+  unsigned long prevMillis = 0;
+  unsigned int wait = onTime;
+  boolean state = true;
+};
+
+ZOOMTX ZoomTX;
+LED_MONITOR LEDmonitor;
+
+void printByte(int p, int b) {
+
+  char out[40];
+  sprintf(out, "RX%d: %8lu\t0x%x\t%d", p, millis(), b, b);
+  Serial.println(out);
+}
+
+boolean getButton(byte btn) {
+
+  boolean b = digitalRead(btn);
+  if (b == true) {
+    while (digitalRead(btn) != b) {
+      delay(5);    // wait until button release;
+    }
+    return true;
+  }
+  return false;
+}
+
+void zoomTransmit(int d[], int len) {
+
+  for (int i = 0; i < len; i++) {
+    char out[40];
+    if (d[i] < 0) {
+      sprintf(out, "TX2: delay(%d)", abs(d[i]));
+      Serial.println(out);
+    }
+    else {
+      sprintf(out, "TX2: %d\t0x%x", i, d[i]);
+      Serial.println(out);
+    }
+  }
+
+  for (int i = 0; i < len; i++) {
+    if (d[i] < 0) {
+      delay(abs(d[i]));
+    }
+    else {
+      Serial2.write(d[i]);
+    }
+  }
+}
+
+// http://forum.arduino.cc/index.php?topic=5157.0
+boolean arrayCompare(int *a, int *b, int len_a, int len_b) {
+  int n;
+  if (len_a != len_b) {
+    return false;
+  }
+  for (n = 0; n < len_a; n++) {
+    if (a[n] != b[n]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+int arrayLen(int a[5]) {
+  int c=0;
+  for (int n = 0; n < 5; n++) {
+    if (a[n] == 0) {
+      break;      
+    }
+    c++;
+  }
+  return c;
+}
+
+boolean zoomCommand(int cmd[4][5]) {
+
+  int responseBytes[5] = {0};  // for incoming serial data
+  unsigned long serialNow = millis();
+  int expectedResponse[3] = {0}; 
+  int responseLen = 0;
+  if (cmd[3][0] == 0) {  // copy the expected response into expectedResponse
+    Serial.println("start");
+    memcpy(expectedResponse, cmd[1], sizeof(cmd[1])); // expected start response
+    responseLen = arrayLen(cmd[1]);
+  }
+  else {
+    Serial.println("stop");
+    memcpy(expectedResponse, cmd[2], sizeof(cmd[2])); // expected stop response
+    responseLen = arrayLen(cmd[2]);
+  }
+
+  // clear the incoming serial2 buffer
+  while(Serial2.available()) {
+    Serial2.read();
+  }
+  
+  // send the command to the zoom    
+  zoomTransmit(cmd[0], sizeof(cmd[0]) / sizeof(int)); 
+  
+  // listen for a response
+  while ((Serial2.available() > 0 && Serial2.available() < responseLen) && ((millis() - serialNow) < serialTimeout))
+  {  } // listen for responseLen bytes or until serialTimeout
+  
+  if (Serial2.available() == 2) {  // only two bytes received?
+    for (int n = 0; n < 2; n++) {
+      responseBytes[n] = Serial2.read();
+      printByte(2, responseBytes[n]);
+    }
+    if (arrayCompare(responseBytes, expectedResponse, 2, 2)) { 
+      Serial.println("RX: OK - Acknowledged! (two bytes)"); // mark has a two byte response
+      return true;
+    }
+    
+    if (arrayCompare(responseBytes, ZoomTX.noAction, 2, 2)) {
+      Serial.println("RX: no action data received - Zoom not in the state we thought it was?");
+    }
+    else {
+      Serial.println("RX: did not understand the response - two bytes"); // probably not in XY Stereo mode?  
+    }
+    return false;
+  }
+  else {  // three or more bytes
+    for (int n = 0; n < 3; n++) {   // check the first three
+      responseBytes[n] = Serial2.read();
+      printByte(2, responseBytes[n]);
+    }
+    if (arrayCompare(responseBytes, expectedResponse, 3, 3) == true) {
+      Serial.println("RX: OK - Acknowledged!");
+      return true;
+    }
+    else {
+      Serial.println("RX: did not understand the response - three bytes"); // probably not in XY Stereo mode?
+    }
+  }  
+  return false;
+}
+
+// https://www.baldengineer.com/millis-ind-on-off-times.html
+void toggleMoitorLEDstate(unsigned long n) {
+
+  if ((unsigned long)(n - LEDmonitor.prevMillis) >= LEDmonitor.wait) {
+    if (LEDmonitor.state) {
+      LEDmonitor.wait = LEDmonitor.offTime;         
+    }
+    else {
+      LEDmonitor.wait = LEDmonitor.onTime; 
+    }  
+    LEDmonitor.state = !(LEDmonitor.state);
+    LEDmonitor.prevMillis = n;
+  }
+}
+
+void setup() {
+  delay(1000);
+  Serial.begin(9600);
+  Serial.println("ready");
+
+  Serial2.begin(2400, SERIAL_8N1); // zoom connection
+
+  pinMode(MONITOR_LED, OUTPUT);
+  pinMode(RED_BTN, INPUT);
+  pinMode(GRN_BTN, INPUT);
+  pinMode(BLU_BTN, INPUT);
+  digitalWrite(MONITOR_LED, LOW);
+}
+
+void loop() {
+
+  nowMillis = millis();
+
+  if (getButton(RED_BTN) && nowMillis >= (prevMillis + buttonPressDelay)) {
+    Serial.print("RECORD: ");
+    if (zoomCommand(ZoomTX.record)) {
+      if (ZoomTX.record[3][0] == 0) {
+        digitalWrite(MONITOR_LED, HIGH);
+        ZoomTX.record[3][0] = 1;  // recording started
+      }
+      else {
+        digitalWrite(MONITOR_LED, LOW);
+        ZoomTX.record[3][0] = 0;  // recording stopped
+        ZoomTX.pause[3][0] = 0;   // recording now not paused (just in case)
+      }
+    }
+    else {
+       Serial.println("RECORD COMMAND FAILED!");
+    }
+    prevMillis = nowMillis;
+  }
+
+  // pause only works when recording
+  if (getButton(GRN_BTN) && ZoomTX.record[3][0] == 1 && nowMillis >= (prevMillis + buttonPressDelay)) {
+    Serial.print("PAUSE: ");
+    if (zoomCommand(ZoomTX.pause)) {
+      ZoomTX.pause[3][0] = !(ZoomTX.pause[3][0]); // toggle the pause status
+      digitalWrite(MONITOR_LED, HIGH);
+    }
+    else {
+       Serial.println("PAUSE COMMAND FAILED!"); // probably not recording, or not recording in XY Stereo
+    }
+    prevMillis = nowMillis;
+  }
+
+  if (getButton(BLU_BTN) && ZoomTX.record[3][0] == 1 && nowMillis >= (prevMillis + buttonPressDelay)) {
+    Serial.print("MARK: ");
+    if (zoomCommand(ZoomTX.mark)) {
+      Serial.println("recording marked");
+    }
+    else {
+       Serial.println("PAUSE COMMAND FAILED!"); // probably not recording, or not recording in XY Stereo
+    }
+    prevMillis = nowMillis;
+  }
+    
+  // blink the LED while paused
+  if (ZoomTX.pause[3][0] == 1) {
+      digitalWrite(MONITOR_LED, LEDmonitor.state);
+      toggleMoitorLEDstate(nowMillis);    
+  }
+
+}

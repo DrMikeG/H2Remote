@@ -1,4 +1,77 @@
 # H2Remote
+
+## 23rd July 2023 ##
+Another thread to pick at:
+https://github.com/radicalrendell/zoom_remote/blob/master/zoomctl.py
+
+https://www.webwork.co.uk/2021/03/wireless-remote-control-for-zoom-h2n.html
+https://github.com/lowfriars/ZoomRemote
+
+With Zoom connected with trrs breakout, L (yellow wire) on the breakout connects to ping GP4 on a pico.
+Code in 04_pico_zoom_rx can receive bits
+0x81,0x80
+
+
+
+## 22nd July 2023 ##
+
+Serial 2400 8b no parity 1 stop (8n1)
+Bit order: LSB first, inverted logic: no
+https://github.com/raspberrypi/pico-examples/blob/master/pio/uart_rx/uart_rx.pio
+
+"With no activity on the recorder the RX and TX pins show ~2.7 volts"
+
+"When you press the record button on the remote, after a moment the recording LED lights up"
+
+"On the oscilloscope I can see three different square wave patterns for the three different buttons on the TX pin and a single type of square wave
+on RX to light the LED."
+
+"The following images show the signal for the record button then that sent in
+response to to light the LED.
+
+![Signal sent by the remote when Record pressed](./readme_img/Hacking%20the%20Zoom%20H2n%20Remote%20Control%20_%20g7smy.co.uk.png) Signal sent by the remote when Record pressed
+
+![Signal sent by the Zoom recorder to light the LED in the remote](./readme_img/Hacking%20the%20Zoom%20H2n%20Remote%20Control%20_%20g7smy2.png) Signal sent by the Zoom recorder to light the LED in the remote
+
+![Alt text](image.png)
+
+Can I get the first byte of the response? 0x20
+
+Using teensy example code:
+```
+// incoming data
+Serial2.begin(2400, SERIAL_8N1);  // Remote Receive - RX
+Serial3.begin(2400, SERIAL_8N1);  // Remote Transmit - TX
+```
+
+https://arduino-pico.readthedocs.io/en/latest/piouart.html
+
+```
+Equivalent to the Arduino SoftwareSerial library, an emulated UART using one or two PIO state machines is included in the Arduino-Pico core. This allows for up to 4 bidirectional or up to 8 unidirectional serial ports to be run from the RP2040 without requiring additional CPU resources.
+
+Instantiate a SerialPIO(txpin, rxpin, fifosize) object in your sketch and then use it the same as any other serial port. Even, odd, and no parity modes are supported, as well as data sizes from 5- to 8-bits. Fifosize, if not specified, defaults to 32 bytes.
+```
+
+https://learn.adafruit.com/intro-to-rp2040-pio-with-circuitpython?view=all
+
+
+
+
+## 21st July 2023 ##
+
+My TSOP2238 IR diodes arrived today.
+These have a different leg ordering to the standard pins I use.
+
+![Alt text](./readme_img/PXL_20230721_122533155.jpg)
+
+Pin 1 (left when facing) - purple wire to GND
+Pin 2 - white wire to 3v3
+Pin 3 grey wire to GP07 (working with test script 01_pico_IR_PIO)
+
+This works great, so I can plan to solder it on to the Tiny_2040
+
+## 18th July 2023 ##
+
 Serial 2400 8b no parity 1 stop (8n1)
 Bit order: LSB first, inverted logic: no
 https://github.com/raspberrypi/pico-examples/blob/master/pio/uart_rx/uart_rx.pio
@@ -28,8 +101,7 @@ Pinout of the Tiny 2040 shows that it has a total of 16 pins(3 additional pins a
 
 ![Alt text](./readme_img/tiny2040_pins.png)
 
-The remaining pins are 2X Ground, 1X 5V, and 1X 3.3V. Bord supports 2X UART(UART0 and UART1), 1X SPI, and 2X I2C(I2C0 and I2C1) interfaces.
-
+The remaining pins are 2X Ground, 1X 5V, and 1X 3.3V. Board supports 2X UART(UART0 and UART1), 1X SPI, and 2X I2C(I2C0 and I2C1) interfaces.
 
 I have been using GP22 (pin 12) on the pico.
 

@@ -1,0 +1,38 @@
+//written for a Teensy 3.x
+#define MONITOR_LED 13
+int incomingByte2 = 0;
+int incomingByte3 = 0;
+unsigned long nowMillis = 0;
+
+void printByte(int p, int b) {
+  char out[40];
+  sprintf(out, "RX%d: %8lu\t0x%x\t%d",p,nowMillis,b,b);
+  Serial.println(out);
+}
+
+void setup() {
+  delay(1000);
+  Serial.begin(9600);
+  Serial.println("ready");
+
+  // incoming data
+  Serial2.begin(2400, SERIAL_8N1);  // Remote Receive - RX
+  Serial3.begin(2400, SERIAL_8N1);  // Remote Transmit - TX
+
+  pinMode(MONITOR_LED, OUTPUT);
+  digitalWrite(MONITOR_LED, HIGH);
+}
+
+void loop() {
+
+  nowMillis = millis();
+  if (Serial2.available() > 0) {
+    incomingByte2 = Serial2.read();
+    printByte(2, incomingByte2);
+  }
+
+  if (Serial3.available() > 0) {
+    incomingByte3 = Serial3.read();
+    printByte(3, incomingByte3);   
+  }
+}
