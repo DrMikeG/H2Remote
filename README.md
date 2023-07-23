@@ -11,6 +11,52 @@ With Zoom connected with trrs breakout, L (yellow wire) on the breakout connects
 Code in 04_pico_zoom_rx can receive bits
 0x81,0x80
 
+In some of example code for a zoom H4 remote, there is a handshake
+
+```
+# handshake
+# return true if connected, false if not
+def zhandshake(s):
+    # send 00, look for 80, then send A1, look for 80 then we are ready
+    s.write('\x00')
+
+    zbyte = s.read(1)
+    if (zbyte == '\x80'): s.write('\xa1')
+        
+    zbyte = s.read(1)
+    if (zbyte == '\x80'): return(1) 
+    return(0)
+```
+
+I don't know if sending A1 would do anything for the H2, because we seem to receive an alternating stream of 80,81,80 as it is.
+
+>> Although the recorder supplies 3.3V power, it's not capable of supplying much current, certainly not enough for a wireless link, so regrettably the wireless interface needs its own power source. The communication protocol was clearly designed by an electrical engineer: it consists of key-down and key-up events being sent to the recorder to signal the press and release of buttons on the physical remote control and an encoded status byte being sent to the remote control to illuminate status LEDs (such as recording-in-progress and level indicators). There is an initial handshake to establish the connection of the remote control. 
+
+https://www.webwork.co.uk/2021/05/wireless-remote-control-for-zoom-h2n.html
+
+>>  The control protocol calls for a code to be sent when a button is pressed and a further code when it is released (this allows, for example, auto-repeat on the Volume controls). The codes corresponding to the "press" event for each button are stored in the keySequence dictionary (the release code is the same for all keys).
+
+Data received from the H2n consists of a singled byte which is encoded as follows (red and green refer to VU meter, both on together corresponds to yellow):
+
+Initially, the Zoom device sends a sequence of two bytes: for the H2n these are 0x80 and 0x81, for other devices they may be 
+different, but the high bit of 0x80 appears to be intended to signify that it's a two-byte sequence. 
+
+The service sends "key up" messages to the recorder. 
+
+At some point, the recorder recognises the existence of the remote controller and switches to one-byte
+responses with the top bit clear. The contents of each byte represents the status of the recorder as follows:
+/// 
+/// Bit 7   -   1 for handshake phase, 0 once remote control has been acknowledged
+/// Bit 6   -   Green status for recorder channel 3
+/// Bit 5   -   Green status for recorder channel 1
+/// Bit 4   -   Greet status for recorder channel 2
+/// Bit 3   -   Red status for recorder channel 3
+/// Bit 2   -   Red status for recorder channel 1
+/// Bit 1   -   Red status for recorder channel 2
+/// Bit 0   -   1 if recording in progress (alternates 0 and 1 when recording paused)
+
+I think the button up code is:
+s.write('\x80\x00')
 
 
 ## 22nd July 2023 ##
