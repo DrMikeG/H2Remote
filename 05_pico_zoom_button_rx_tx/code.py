@@ -78,32 +78,34 @@ while True:
             stateIsRecording = isRecording(incoming_byte2)
             print("Updated status. Record={}".format(stateIsRecording))
             last_received_time = time.monotonic()
+            stateKnown = True
 
-    if time.monotonic() - last_received_time >= 5.0:
-        print("No status data received for 5 seconds. Sending specific byte.")
-        # This code elicits a response
-        #print("Poke")
-        uart2.write(b'\x80')
-        time.sleep(0.01)
-        uart2.write(b'\x00')
-        time.sleep(0.01)
-        uart2.write(b'\xA1')
-        time.sleep(0.01)
-        uart2.write(b'\x00')
-        time.sleep(0.25)
-        last_received_time = time.monotonic()
-            
-    if if_switch_held():
-            if stateIsRecording:
-                print("Stop recording")
-            else:
-                print("Start recording")
-            # Let's try recording?
-            uart2.write(b'\x81')
-            time.sleep(0.1)  # 100ms delay
-            uart2.write(b'\x00')
-            time.sleep(0.1)  # 100ms delay
+    if not stateKnown:
+        if time.monotonic() - last_received_time >= 5.0:
+            print("No status data received for 5 seconds. Sending specific byte.")
+            # This code elicits a response
+            #print("Poke")
             uart2.write(b'\x80')
-            time.sleep(0.1)  # 100ms delay
+            time.sleep(0.01)
+            uart2.write(b'\x00')
+            time.sleep(0.01)
+            uart2.write(b'\xA1')
+            time.sleep(0.01)
             uart2.write(b'\x00')
             time.sleep(0.25)
+            last_received_time = time.monotonic()
+    else:            
+        if if_switch_held():
+                if stateIsRecording:
+                    print("Stop recording")
+                else:
+                    print("Start recording")
+                # Let's try recording?
+                uart2.write(b'\x81')
+                time.sleep(0.1)  # 100ms delay
+                uart2.write(b'\x00')
+                time.sleep(0.1)  # 100ms delay
+                uart2.write(b'\x80')
+                time.sleep(0.1)  # 100ms delay
+                uart2.write(b'\x00')
+                time.sleep(0.25)
