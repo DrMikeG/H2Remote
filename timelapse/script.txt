@@ -1,0 +1,13 @@
+I've started a new project and I'm very excited.
+
+I'm going to be using this Tiny 2040.
+This microcontroller is based on the same rp2040 chip as the raspberry pi pico, but as the name suggests it is in this tiny form factor - smaller than an SD card.
+
+It supports circuit and micropython and has pin compatability with the pi pico, which I think will be important for using the PIO state machines of the rp2040.
+
+The reason I want this small form factor is because I'm building a parasitic device, which will plug into and be powered from another device.
+
+One of my design requirements is that I want this to run off 3.1v at very low current draw.
+Now, the data sheets for this device are suitable vague on whether that will work - and that's understandable, because like any general purpose processor, the power use will vary based on the task you program it to perform.
+
+So, I am going to run an experiment with some AA batteries before I hook things up in anger - and that's what this video will be about.
