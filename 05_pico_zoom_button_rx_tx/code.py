@@ -3,10 +3,7 @@ import board
 import digitalio
 import busio
 
-# Initialize the serial ports
 uart2 = busio.UART(board.GP4, board.GP5, baudrate=2400, bits=8, parity=None, stop=1)
-
-uart3 = busio.UART(board.GP12, board.GP13, baudrate=2400, bits=8, parity=None, stop=1)
 
 def print_byte(p, b):
     print("RX{}: {:8}\t0x{:x}\t{}".format(p, int(time.monotonic() * 1000), b, b))
@@ -86,13 +83,13 @@ while True:
         print("No status data received for 5 seconds. Sending specific byte.")
         # This code elicits a response
         print("Poke")
-        uart3.write(b'\x80')
+        uart2.write(b'\x80')
         time.sleep(0.01)
-        uart3.write(b'\x00')
+        uart2.write(b'\x00')
         time.sleep(0.01)
-        uart3.write(b'\xA1')
+        uart2.write(b'\xA1')
         time.sleep(0.01)
-        uart3.write(b'\x00')
+        uart2.write(b'\x00')
         time.sleep(0.25)
             
     if if_switch_held():
@@ -101,11 +98,11 @@ while True:
             else:
                 print("Start recording")
             # Let's try recording?
-            uart3.write(b'\x81')
+            uart2.write(b'\x81')
             time.sleep(0.1)  # 100ms delay
-            uart3.write(b'\x00')
+            uart2.write(b'\x00')
             time.sleep(0.1)  # 100ms delay
-            uart3.write(b'\x80')
+            uart2.write(b'\x80')
             time.sleep(0.1)  # 100ms delay
-            uart3.write(b'\x00')
+            uart2.write(b'\x00')
             time.sleep(0.25)
