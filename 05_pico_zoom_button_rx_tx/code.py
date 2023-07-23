@@ -71,7 +71,7 @@ while True:
     if uart2.in_waiting > 0:
         incoming_byte2 = uart2.read(1)[0]
          # Update the last received time
-        print_byte(2, incoming_byte2)
+        #print_byte(2, incoming_byte2)
         #interpret_byte(incoming_byte2)
         if not needsHandshake(incoming_byte2):
             # This useful status  data
@@ -82,7 +82,7 @@ while True:
     if time.monotonic() - last_received_time >= 5.0:
         print("No status data received for 5 seconds. Sending specific byte.")
         # This code elicits a response
-        print("Poke")
+        #print("Poke")
         uart2.write(b'\x80')
         time.sleep(0.01)
         uart2.write(b'\x00')
@@ -91,6 +91,7 @@ while True:
         time.sleep(0.01)
         uart2.write(b'\x00')
         time.sleep(0.25)
+        last_received_time = time.monotonic()
             
     if if_switch_held():
             if stateIsRecording:
