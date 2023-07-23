@@ -14,41 +14,23 @@ def print_byte(p, b):
 def interpret_byte(byte):
     # Bit 7 - Handshake phase (1 for handshake, 0 for acknowledged)
     handshake_phase = bool(byte & 0b10000000)
-
-    # Bit 6 - Green status for recorder channel 3
-    channel_3_green = bool(byte & 0b01000000)
-
-    # Bit 5 - Green status for recorder channel 1
-    channel_1_green = bool(byte & 0b00100000)
-
-    # Bit 4 - Green status for recorder channel 2
-    channel_2_green = bool(byte & 0b00010000)
-
-    # Bit 3 - Red status for recorder channel 3
-    channel_3_red = bool(byte & 0b00001000)
-
-    # Bit 2 - Red status for recorder channel 1
-    channel_1_red = bool(byte & 0b00000100)
-
-    # Bit 1 - Red status for recorder channel 2
-    channel_2_red = bool(byte & 0b00000010)
-
     # Bit 0 - Recording in progress (alternates 0 and 1 when recording paused)
     recording_in_progress = bool(byte & 0b00000001)
-
     # Print the decoded properties
-    print("Handshake phase:", handshake_phase)
-    print("Channel 3 Green Status:", channel_3_green)
-    print("Channel 1 Green Status:", channel_1_green)
-    print("Channel 2 Green Status:", channel_2_green)
-    print("Channel 3 Red Status:", channel_3_red)
-    print("Channel 1 Red Status:", channel_1_red)
-    print("Channel 2 Red Status:", channel_2_red)
-    print("Recording in progress:", recording_in_progress)
+    print("Handshake phase:{} Recording in progress:{}".format(handshake_phase,recording_in_progress))
 
-# Example usage with a sample byte
-sample_byte = 0b11010101
-interpret_byte(sample_byte)
+def needsHandshake(byte):
+    handshake_phase = bool(byte & 0b10000000)
+    return handshake_phase
+
+def isRecording(byte):
+    # Bit 7 - Handshake phase (1 for handshake, 0 for acknowledged)
+    handshake_phase = bool(byte & 0b10000000)
+    # Bit 0 - Recording in progress (alternates 0 and 1 when recording paused)
+    recording_in_progress = bool(byte & 0b00000001)
+    # Print the decoded properties
+    return not handshake_phase and recording_in_progress
+
 
 # Set up the GPIO pin connected to the momentary contact switch (GP02)
 switch_pin = digitalio.DigitalInOut(board.GP2)
@@ -79,68 +61,51 @@ def wait_for_switch():
 print("Press switch to begin")
 wait_for_switch()
 
+# Variable to store the last received time
+last_received_time = time.monotonic()
+
+stateKnown = False
+stateIsRecording = False
+
 print("Reading from uart 2...")
-print("Press Switch to send handshake")
 while True:
+
     # Check for incoming data on Serial2
     if uart2.in_waiting > 0:
         incoming_byte2 = uart2.read(1)[0]
+         # Update the last received time
         print_byte(2, incoming_byte2)
-        interpret_byte(incoming_byte2)
+        #interpret_byte(incoming_byte2)
+        if not needsHandshake(incoming_byte2):
+            # This useful status  data
+            stateIsRecording = isRecording(incoming_byte2)
+            print("Updated status. Record={}".format(stateIsRecording))
+            last_received_time = time.monotonic()
+
+    if time.monotonic() - last_received_time >= 5.0:
+        print("No status data received for 5 seconds. Sending specific byte.")
+        # This code elicits a response
+        print("Poke")
+        uart3.write(b'\x80')
+        time.sleep(0.01)
+        uart3.write(b'\x00')
+        time.sleep(0.01)
+        uart3.write(b'\xA1')
+        time.sleep(0.01)
+        uart3.write(b'\x00')
+        time.sleep(0.25)
+            
     if if_switch_held():
-        break
-
-print("Send the bytes '\x80\x00' through uart3")
-# Send the bytes '\x80\x00' through uart3
-uart3.write(b'\x80')
-time.sleep(0.1)  # 100ms delay
-uart3.write(b'\x00')
-
-time.sleep(0.25)
-print("Reading from uart 2...")
-print("Press Switch to start recording")
-while True:
-    # Check for incoming data on Serial2
-    if uart2.in_waiting > 0:
-        incoming_byte2 = uart2.read(1)[0]
-        print_byte(2, incoming_byte2)
-    if if_switch_held():
-        break
-
-print("Start recording?")        
-# Let's try recording?
-uart3.write(b'\x81')
-time.sleep(0.1)  # 100ms delay
-uart3.write(b'\x00')
-time.sleep(0.1)  # 100ms delay
-uart3.write(b'\x80')
-time.sleep(0.1)  # 100ms delay
-uart3.write(b'\x00')
-
-print("Reading from uart 2...")
-print("Press Switch to stop recording")
-while True:
-    if uart2.in_waiting > 0:
-        incoming_byte2 = uart2.read(1)[0]
-        print_byte(2, incoming_byte2)
-        interpret_byte(incoming_byte2)
-    if if_switch_held():
-        break
-
-print("Stop recording?")        
-uart3.write(b'\x81')
-time.sleep(0.1)  # 100ms delay
-uart3.write(b'\x00')
-time.sleep(0.1)  # 100ms delay
-uart3.write(b'\x80')
-time.sleep(0.1)  # 100ms delay
-uart3.write(b'\x00')
-
-print("Reading from uart 2...")
-while True:
-    if uart2.in_waiting > 0:
-        incoming_byte2 = uart2.read(1)[0]
-        print_byte(2, incoming_byte2)
-        interpret_byte(incoming_byte2)
-    if if_switch_held():
-        break
+            if stateIsRecording:
+                print("Stop recording")
+            else:
+                print("Start recording")
+            # Let's try recording?
+            uart3.write(b'\x81')
+            time.sleep(0.1)  # 100ms delay
+            uart3.write(b'\x00')
+            time.sleep(0.1)  # 100ms delay
+            uart3.write(b'\x80')
+            time.sleep(0.1)  # 100ms delay
+            uart3.write(b'\x00')
+            time.sleep(0.25)
