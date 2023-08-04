@@ -1,5 +1,25 @@
 # H2Remote
 
+## 31st July 2023 ##
+
+So, I made a boo boo.
+The port on the H2 is current limited to 10mA, and despite my previous readings, the tiny 2040 need 25mA to run.
+This isn't a surprise as the 2040 chip needs 20mA to idle.
+
+I can't think of a way around this limit, so my board is going to need external power.
+I considered some coin cell batteries, and I might go there, but first I want to try a lipo battery.
+I went looking for a charging shim with an on/off switch, but realised that most more larger than the tiny 2040, and would present more
+mounting problems.
+
+Since I have lost my size advantage, I have ordered a different board to work with, one with native lipo support.
+I considered the pimironi version of this, which has an on/off button, but decided I'm going to want the on/off broken out to the side of the case anyway.
+
+
+
+https://learn.adafruit.com/adafruit-feather-rp2040-pico/pinouts
+https://io.adafruit.com/blog/tip/2016/12/14/feather-power-switch/
+https://learn.adafruit.com/adafruit-feather-m0-basic-proto/power-management#enable-pin
+
 ## 23rd July 2023 ##
 Another thread to pick at:
 https://github.com/radicalrendell/zoom_remote/blob/master/zoomctl.py
@@ -58,6 +78,19 @@ responses with the top bit clear. The contents of each byte represents the statu
 I think the button up code is:
 s.write('\x80\x00')
 
+Gradually building up from the various great bits of example code, I've managed to:
+- read the h2 RX line
+- 'handshake' with the h2 on its TX line
+- interpret the post-handshake byte on the h2 RX line
+- Send start/stop record in the TX line
+
+This is currently being done with the UART pins, not with PIO.
+
+I need to understand more about PIO if I want to avoid needing to use UART.
+
+I struggled to get two example running at once, so I'm going to try and build a new example with flashing an LED and reading the IR diode.
+
+https://learn.adafruit.com/intro-to-rp2040-pio-with-circuitpython/using-pio-to-blink-a-led-quickly-or-slowly
 
 ## 22nd July 2023 ##
 

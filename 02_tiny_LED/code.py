@@ -8,9 +8,9 @@ import pwmio
 
 #Setup RGB LED
 # Construct PWM objects with RGB LED
-rpwm = pwmio.PWMOut(board.LED_R, frequency=1000) # RED
-gpwm = pwmio.PWMOut(board.LED_G, frequency=1000) # GREEN
-bpwm = pwmio.PWMOut(board.LED_B, frequency=1000) # BLUE
+rpwm = pwmio.PWMOut(board.LED_R, frequency=1000) # RED GP18
+gpwm = pwmio.PWMOut(board.LED_G, frequency=1000) # GREEN GP19
+bpwm = pwmio.PWMOut(board.LED_B, frequency=1000) # BLUE GP20
 
 # Turn off
 rduty = 65535
