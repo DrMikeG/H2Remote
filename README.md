@@ -1,5 +1,20 @@
 # H2Remote
 
+## 4th August 2023 ##
+
+This evening was my first opportunity to start working with the feather 2040
+
+Firstly, I've solvered up some sprung-clip test leads onto some du pont male breadboard leads.
+
+This allows me to make secure connections to the board without soldering on headers.
+Very pleased with that idea.
+
+The feature has a very different list of pins available compare to the pico.
+I took the 01_pico_IR example and edited it into 08_feather_IR - editing the default pin from GP22 to D6 and editing the pin in use too.
+This was the only modification necessary though.
+
+
+
 ## 31st July 2023 ##
 
 So, I made a boo boo.
