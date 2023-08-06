@@ -1,5 +1,59 @@
 # H2Remote
 
+## 5th August 2023 ##
+
+Today I got the feather 2040 flashing its neo pixel.
+I also got it to read from the IR receiver.
+
+I tried to decode the remote protocol - thinking it would encode an RGB value - but I'm pretty sure it's just sending an int for each remote key, and the device is mapping the int to a specific color or behaviour.
+
+Looking at the pin order on the feature, it was actually better to swap back to a vs1838b IR receiver, as the pinout is the compatible (although backwards) with 3v3/GND/A0 on the feather.
+
+![Alt text](./readme_img/PXL_20230805_130158125.jpg)
+
+I also connected the lipo battery (via the switch) which is now being charged (small yellow LED top left)
+
+Next step is to review the TX/RX with the zoom and figure out a common gnd.
+
+On the Pico - I had success with 
+``uart2 = busio.UART(board.GP4, board.GP5, baudrate=2400, bits=8, parity=None, stop=1)``
+
+![Alt text](./readme_img/pico_TX.png)
+
+![Alt text](./readme_img/feather_TX.png)
+
+![Alt text](./readme_img/bo_jack.png)
+
+
+UART1 TX and UART1 RX
+
+From the feather documentation:
+
+>>> CircuitPython I2C, SPI and UART
+Note that in CircuitPython, there is a board object each for I2C, SPI and UART that use the pins labeled on the Feather. You can use these objects to initialise these peripherals in your code.
+```
+board.STEMMA_I2C() uses SCL/SDA
+board.SPI() uses SCK/MO/MI
+board.UART() uses RX/TX
+```
+
+```
+UART Pins:
+UART0 TX: TX, A2, D12
+UART0 RX: RX, A3, D13
+
+UART1 TX: D24, MISO, D6
+UART1 RX: D25, D9
+```
+
+Using the feather I can successfully communicate with the H2 to start and stop recording.
+I had 24/25 backwards for a while - and listening seemed to work.
+
+pin 25 is connected to L on the 2.5mm terminal block
+pin 24 is connected to R on the 2.5mm terminal block
+pin 10 (pseudo gnd) is connected to V on the 2.5mm terminal block
+
+
 ## 4th August 2023 ##
 
 This evening was my first opportunity to start working with the feather 2040
