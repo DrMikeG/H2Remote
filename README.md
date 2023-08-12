@@ -1,5 +1,21 @@
 # H2Remote
 
+## 12th August 2023 ##
+
+Back to the Tiny
+
+![Alt text](./readme_img/PXL_20230812_123212802.jpg)
+![Alt text](./readme_img/PXL_20230812_123222882.jpg)
+
+With minor revisions changing from the NeoPixel to the RGB LED, the code from the feather works on the Tiny.
+The hardware UART RX/TX are GP4 and GP5.
+
+blue wire in cable L - GP5 (green clip) connects to the yellow lead, which is L on 2.5mm jack
+green wire in cable R - GP4 (yellow clip) connects to the white lead, which is R on 2.5mm jack
+copper wire in cable (GND) - GND pin on Tiny
+red wire (3v3) cut short
+
+
 ## 5th August 2023 ##
 
 Today I got the feather 2040 flashing its neo pixel.
