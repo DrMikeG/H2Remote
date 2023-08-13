@@ -1,0 +1,25 @@
+I've continued to work on one of my two designs for the IR remote transcieve for contolling my H2 Zoom microphone.
+
+This design, which I expect to be the chunkier of the 2, is using a lipo battery and the adafruit feather 2040.
+
+The case here is revision 7. It's printed in ocean green translucent PLA. It's quite boxy at the moment, but I will blend some edges in the final version.
+
+I've made a three layer design for the case, which allows me to revise and reprint faster.
+
+The bottom layer is holds the lipo battery and a switch. I've kept the JST plug on the battery - it adds a litle bit of bulk but its allows my to serpate the layers if there is a problem.
+
+The middle layer is a frame for the feather, which adds tabs under the pcb mounting holes.
+
+I've moved off of the breadboard, soldering the IR receiver and the 2.5mm jack plug to the relevant pins on feather.
+
+The 2.5mm jack is loose and floating for now, so I need to be a bit careful handling the feather in this configuration.
+
+The 3rd layer is the top of of the case, which secures the 2.5mm jack. 
+There is a round window to expose the IR receiver, and a smaller adjacent window for the status LED - that will be more important on the final print which will be opaque not transparent.
+
+Here the layers are secured with m2.5 machine screws. These allow good registration for the layers and make it easy to assembly and disassemble.
+The final print will be in black PETG, and I will replace the m2.5 bolt holes and threads for self-tappers, which will look neater.
+
+On the end here you can see the USB C socket which is broken out for recharging the lipo battery.
+
+The IR receiver is using PIO capabilities of the RP2040
